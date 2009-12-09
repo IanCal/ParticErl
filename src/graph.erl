@@ -4,14 +4,22 @@
 
 test_graph() ->
 	[
-		{0,1,1.0},
-		{0,2,1.0},
-		{1,3,0.1},
-		{3,4,1.0},
-		{4,5,1.0}
+		{{0,0},{1,0},1.0},
+		{{0,0},{1,1},1.0},
+		{{0,0},{1,2},0.1},
+		{{0,1},{1,2},1.0},
+		{{0,1},{1,3},1.0}
 	].
 
-connected(Graph) ->
+generate_random_graph(Vertices, Density, Frames) ->
+	[{{Frame, random:uniform(Vertices)}, {Frame + 1, random:uniform(Vertices)}, random:uniform()} || Frame <- lists:seq(1,Frames), _ <- lists:seq(1,round(Vertices * Density))].
+
+
+reduce_graph(Graph) ->
+	[_|NewGraph] = lists:keysort(3,Graph),
+	NewGraph.
+
+digraph_components(Graph) ->
 	G = digraph:new(),
 	lists:map(
 		fun({VertexFrom, VertexTo, _Cost}) ->
@@ -19,10 +27,14 @@ connected(Graph) ->
 				digraph:add_vertex(G, VertexTo),
 				digraph:add_edge(G, VertexFrom, VertexTo)
 		end, Graph),
-	Components = lists:map(
+	GraphComponents = digraph_utils:components(G),
+	digraph:delete(G),
+	GraphComponents.
+
+connected(Graph) ->
+	GraphComponents = digraph_components(Graph),
+	lists:map(
 		fun(Component) ->
-				%Given this list of vertices, which edges are in the graph?
-				%Get it working, then optimise
 				lists:filter(fun({V1, V2, _Cost}) ->
 							case lists:member(V1, Component) of
 								true ->
@@ -30,18 +42,13 @@ connected(Graph) ->
 								false ->
 									lists:member(V2, Component)
 							end 
-					end, Graph)
+					end,
+					Graph)
 		end,
-		digraph_utils:components(G)),
-	digraph:delete(G),
-	Components.
-
-reduce_graph(Graph) ->
-	[_|NewGraph] = lists:keysort(3,Graph),
-	NewGraph.
+		GraphComponents).
 
 valid_graph(Graph) ->
-	length(Graph) < 4.
+	length(Graph) < 20.
 
 split_graph(Graph) ->
 	case valid_graph(Graph) of
