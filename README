@@ -1,0 +1,8 @@
+ParticErl is a badly named efficient particle tracker written in Erlang.
+
+Given a set of "frames" described by a series of particle points and reliabilities, it will produce a set of tracks. 
+
+Advantages:
+	The search grows linearly with the number of frames.
+	Overly large search graphs are slowly pruned (least probably track first) until they become tractable.
+	Automatic parallelisation. The code will automatically run in parallel on however many cores you have at your disposal. Further work should allow it to be run in a distributed manner across many machines. 
